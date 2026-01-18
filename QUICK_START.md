@@ -1,5 +1,12 @@
 # 🚀 Quick Start Checklist for Session Planner Deployment
 
+## ✨ Key Features
+- **Session Library**: Save and reuse session plans
+- **PDF Export**: Professional formatted exports
+- **Drag-and-Drop**: Easy activity planning
+- **Learning Objectives**: Track educational goals
+- **Resource Links**: Attach materials to sessions
+
 ## ✅ Pre-Deployment Checklist
 
 - [ ] Download the `session-planner` folder to your computer
