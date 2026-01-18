@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, Clock, Users, GripVertical, Download, FileText, Target, Link as LinkIcon, Edit2, Save, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Trash2, Clock, Users, GripVertical, Download, FileText, Target, Link as LinkIcon, Edit2, Save, X, FolderOpen, FilePlus } from 'lucide-react';
 
 export default function SessionPlanner() {
-  const [sessions, setSessions] = useState([]);
+  const [savedSessions, setSavedSessions] = useState([]);
+  const [showSessionLibrary, setShowSessionLibrary] = useState(false);
   const [activityLibrary, setActivityLibrary] = useState([
     { id: 'intro', name: 'Introduction & Icebreaker', duration: 10, type: 'engagement' },
     { id: 'lecture', name: 'Lecture/Presentation', duration: 20, type: 'content' },
@@ -28,6 +29,30 @@ export default function SessionPlanner() {
   
   const [draggedItem, setDraggedItem] = useState(null);
   const [expandedItems, setExpandedItems] = useState({});
+
+  // Load saved sessions and custom activities from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('savedSessions');
+    if (saved) {
+      setSavedSessions(JSON.parse(saved));
+    }
+    
+    const customActivities = localStorage.getItem('customActivities');
+    if (customActivities) {
+      const parsed = JSON.parse(customActivities);
+      setActivityLibrary(prev => {
+        const defaultIds = ['intro', 'lecture', 'discussion', 'activity', 'break', 'qa', 'review'];
+        const defaults = prev.filter(a => defaultIds.includes(a.id));
+        return [...defaults, ...parsed];
+      });
+    }
+  }, []);
+
+  // Save custom activities to localStorage
+  useEffect(() => {
+    const customActivities = activityLibrary.filter(a => a.id.startsWith('custom-'));
+    localStorage.setItem('customActivities', JSON.stringify(customActivities));
+  }, [activityLibrary]);
 
   const typeColors = {
     content: 'bg-blue-100 border-blue-300 text-blue-800',
@@ -204,6 +229,65 @@ export default function SessionPlanner() {
   const totalDuration = agenda.reduce((sum, item) => sum + item.duration, 0);
   const times = calculateTimes();
 
+  const saveSession = () => {
+    if (!sessionTitle.trim()) {
+      alert('Please add a session title before saving');
+      return;
+    }
+
+    const session = {
+      id: Date.now(),
+      sessionTitle,
+      sessionDate,
+      startTime,
+      participants,
+      sessionNotes,
+      learningObjectives,
+      sessionResources,
+      agenda,
+      savedAt: new Date().toISOString()
+    };
+
+    const newSessions = [...savedSessions, session];
+    setSavedSessions(newSessions);
+    localStorage.setItem('savedSessions', JSON.stringify(newSessions));
+    alert('Session saved successfully!');
+  };
+
+  const loadSession = (session) => {
+    setSessionTitle(session.sessionTitle);
+    setSessionDate(session.sessionDate);
+    setStartTime(session.startTime);
+    setParticipants(session.participants);
+    setSessionNotes(session.sessionNotes);
+    setLearningObjectives(session.learningObjectives);
+    setSessionResources(session.sessionResources);
+    setAgenda(session.agenda);
+    setShowSessionLibrary(false);
+  };
+
+  const deleteSession = (sessionId) => {
+    if (confirm('Are you sure you want to delete this session?')) {
+      const newSessions = savedSessions.filter(s => s.id !== sessionId);
+      setSavedSessions(newSessions);
+      localStorage.setItem('savedSessions', JSON.stringify(newSessions));
+    }
+  };
+
+  const newSession = () => {
+    if (agenda.length > 0 && !confirm('Start a new session? Current unsaved work will be lost.')) {
+      return;
+    }
+    setSessionTitle('');
+    setSessionDate('');
+    setStartTime('09:00');
+    setParticipants('');
+    setSessionNotes('');
+    setLearningObjectives(['']);
+    setSessionResources([{ name: '', url: '' }]);
+    setAgenda([]);
+  };
+
   const exportAgenda = () => {
     const text = `
 ${sessionTitle || 'Session Plan'}
@@ -237,11 +321,203 @@ ${i + 1}. ${item.name}
     a.click();
   };
 
+  const exportToPDF = async () => {
+    // Dynamic import of jsPDF
+    const { jsPDF } = await import('jspdf');
+    
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const maxWidth = pageWidth - (margin * 2);
+    let yPos = margin;
+
+    // Helper function to add text with wrapping
+    const addText = (text, fontSize = 12, isBold = false) => {
+      doc.setFontSize(fontSize);
+      if (isBold) {
+        doc.setFont(undefined, 'bold');
+      } else {
+        doc.setFont(undefined, 'normal');
+      }
+      
+      const lines = doc.splitTextToSize(text, maxWidth);
+      lines.forEach(line => {
+        if (yPos > pageHeight - margin) {
+          doc.addPage();
+          yPos = margin;
+        }
+        doc.text(line, margin, yPos);
+        yPos += fontSize * 0.5;
+      });
+      yPos += 3;
+    };
+
+    // Title
+    addText(sessionTitle || 'Session Plan', 20, true);
+    yPos += 5;
+
+    // Session Details
+    if (sessionDate) addText(`Date: ${sessionDate}`, 11);
+    if (startTime) addText(`Start Time: ${startTime}`, 11);
+    if (participants) addText(`Participants: ${participants}`, 11);
+    addText(`Total Duration: ${totalDuration} minutes (${Math.floor(totalDuration/60)}h ${totalDuration%60}m)`, 11, true);
+    yPos += 5;
+
+    // Session Notes
+    if (sessionNotes) {
+      addText('SESSION NOTES', 14, true);
+      addText(sessionNotes, 10);
+      yPos += 5;
+    }
+
+    // Learning Objectives
+    const objectives = learningObjectives.filter(obj => obj.trim());
+    if (objectives.length > 0) {
+      addText('LEARNING OBJECTIVES', 14, true);
+      objectives.forEach((obj, i) => {
+        addText(`${i + 1}. ${obj}`, 10);
+      });
+      yPos += 5;
+    }
+
+    // Session Resources
+    const resources = sessionResources.filter(r => r.name || r.url);
+    if (resources.length > 0) {
+      addText('SESSION RESOURCES', 14, true);
+      resources.forEach(r => {
+        addText(`• ${r.name || 'Resource'}: ${r.url}`, 9);
+      });
+      yPos += 5;
+    }
+
+    // Agenda
+    if (agenda.length > 0) {
+      addText('AGENDA', 16, true);
+      yPos += 3;
+
+      agenda.forEach((item, i) => {
+        // Activity header
+        addText(`${i + 1}. ${item.name}`, 12, true);
+        
+        // Time and type
+        if (times[i]) {
+          addText(`   Time: ${times[i].start} - ${times[i].end} (${item.duration} min) | Type: ${item.type}`, 10);
+        }
+
+        // Notes
+        if (item.notes) {
+          addText(`   Notes: ${item.notes}`, 9);
+        }
+
+        // Resources
+        const activityResources = (item.resources || []).filter(r => r.name || r.url);
+        if (activityResources.length > 0) {
+          addText('   Resources:', 9, true);
+          activityResources.forEach(r => {
+            addText(`   • ${r.name || 'Resource'}: ${r.url}`, 8);
+          });
+        }
+        
+        yPos += 3;
+      });
+    }
+
+    // Save PDF
+    doc.save(`${sessionTitle || 'session-plan'}.pdf`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Session Library Modal */}
+        {showSessionLibrary && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-800">Session Library</h2>
+                  <button
+                    onClick={() => setShowSessionLibrary(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                {savedSessions.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FolderOpen size={64} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500">No saved sessions yet</p>
+                    <p className="text-sm text-gray-400 mt-2">Create and save a session to see it here</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {savedSessions.map(session => (
+                      <div key={session.id} className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-gray-800">{session.sessionTitle}</h3>
+                            <div className="mt-2 space-y-1 text-sm text-gray-600">
+                              {session.sessionDate && <p>Date: {session.sessionDate}</p>}
+                              {session.startTime && <p>Start: {session.startTime}</p>}
+                              {session.participants && <p>Participants: {session.participants}</p>}
+                              <p>Activities: {session.agenda.length}</p>
+                              <p className="text-xs text-gray-400">
+                                Saved: {new Date(session.savedAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => loadSession(session)}
+                              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
+                            >
+                              Load
+                            </button>
+                            <button
+                              onClick={() => deleteSession(session.id)}
+                              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Session Planner</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-gray-800">Session Planner</h1>
+            <div className="flex gap-2">
+              <button
+                onClick={newSession}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex items-center gap-2"
+              >
+                <FilePlus size={18} /> New Session
+              </button>
+              <button
+                onClick={() => setShowSessionLibrary(true)}
+                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 flex items-center gap-2"
+              >
+                <FolderOpen size={18} /> Session Library ({savedSessions.length})
+              </button>
+              <button
+                onClick={saveSession}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
+              >
+                <Save size={18} /> Save Session
+              </button>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <input
@@ -446,12 +722,20 @@ ${i + 1}. ${item.name}
                     Total: <span className="font-bold">{totalDuration} min</span> ({Math.floor(totalDuration/60)}h {totalDuration%60}m)
                   </div>
                   {agenda.length > 0 && (
-                    <button
-                      onClick={exportAgenda}
-                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2 text-sm"
-                    >
-                      <Download size={16} /> Export
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={exportAgenda}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center gap-2 text-sm"
+                      >
+                        <Download size={16} /> Export TXT
+                      </button>
+                      <button
+                        onClick={exportToPDF}
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2 text-sm"
+                      >
+                        <Download size={16} /> Export PDF
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
