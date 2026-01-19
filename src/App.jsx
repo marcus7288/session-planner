@@ -910,7 +910,7 @@ ${i + 1}. ${item.name}
                     placeholder="Duration (min)"
                     value={newActivityDuration}
                     onChange={(e) => setNewActivityDuration(e.target.value)}
-                    className={`flex-1 px-3 py-2 border rounded text-sm ${
+                    className={`flex-1 min-w-0 px-3 py-2 border rounded text-sm ${
                       darkMode
                         ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400'
                         : 'bg-white border-gray-300 text-gray-900'
@@ -919,7 +919,7 @@ ${i + 1}. ${item.name}
                   <select
                     value={newActivityType}
                     onChange={(e) => setNewActivityType(e.target.value)}
-                    className={`flex-1 px-3 py-2 border rounded text-sm ${
+                    className={`flex-1 min-w-0 px-3 py-2 border rounded text-sm ${
                       darkMode
                         ? 'bg-gray-600 border-gray-500 text-white'
                         : 'bg-white border-gray-300 text-gray-900'
