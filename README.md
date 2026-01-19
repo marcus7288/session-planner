@@ -12,6 +12,13 @@ An interactive session planning tool similar to SessionLab for planning meetings
 - **Automatic time calculation**
 - **Customizable activities** with different types (content, engagement, practice, break)
 
+### Theme Customization
+- **Dark Mode** - Easy on the eyes for low-light environments
+- **Light Mode** - Clean, bright interface for daytime use
+- **5 Color Schemes** - Choose from Blue, Ocean, Sunset, Forest, or Lavender
+- **Live Preview** - See changes instantly
+- **Persistent Settings** - Theme preferences saved automatically
+
 ### Session Management
 - **Save sessions** to a local library for reuse
 - **Load saved sessions** to continue planning or reuse templates
@@ -26,6 +33,7 @@ An interactive session planning tool similar to SessionLab for planning meetings
 ### Data Persistence
 - All sessions saved to browser localStorage
 - Custom activities persist between sessions
+- Theme preferences automatically saved
 - No server required - everything stored locally
 
 ## Local Development
