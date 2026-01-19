@@ -892,7 +892,6 @@ ${i + 1}. ${item.name}
               <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Activity Library</h2>
               
               <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-              <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
                 <h3 className={`font-semibold text-sm mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Add Custom Activity</h3>
                 <input
                   type="text"
@@ -1150,7 +1149,6 @@ ${i + 1}. ${item.name}
               </div>
             </div>
           </div>
-        </div>
         </div>
         </div>
       </div>
