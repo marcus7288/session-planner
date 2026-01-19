@@ -693,7 +693,7 @@ ${i + 1}. ${item.name}
         <div className={`rounded-lg shadow-lg p-6 mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className={`rounded-lg shadow-lg p-6 mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Session Planner</h1>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>EduFlow Session Planner</h1>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowThemeCustomizer(true)}
