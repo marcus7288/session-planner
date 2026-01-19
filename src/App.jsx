@@ -1,9 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Clock, Users, GripVertical, Download, FileText, Target, Link as LinkIcon, Edit2, Save, X, FolderOpen, FilePlus } from 'lucide-react';
+import { Plus, Trash2, Clock, Users, GripVertical, Download, FileText, Target, Link as LinkIcon, Edit2, Save, X, FolderOpen, FilePlus, Palette, Moon, Sun } from 'lucide-react';
+
+// Color scheme presets
+const colorSchemes = {
+  blue: {
+    name: 'Blue',
+    content: { light: 'bg-blue-100 border-blue-300 text-blue-900', dark: 'bg-blue-900 border-blue-700 text-blue-100' },
+    engagement: { light: 'bg-green-100 border-green-300 text-green-900', dark: 'bg-green-900 border-green-700 text-green-100' },
+    practice: { light: 'bg-purple-100 border-purple-300 text-purple-900', dark: 'bg-purple-900 border-purple-700 text-purple-100' },
+    break: { light: 'bg-gray-100 border-gray-300 text-gray-900', dark: 'bg-gray-700 border-gray-600 text-gray-100' },
+    primary: { light: 'bg-blue-500 hover:bg-blue-600', dark: 'bg-blue-600 hover:bg-blue-700' }
+  },
+  ocean: {
+    name: 'Ocean',
+    content: { light: 'bg-cyan-100 border-cyan-300 text-cyan-900', dark: 'bg-cyan-900 border-cyan-700 text-cyan-100' },
+    engagement: { light: 'bg-teal-100 border-teal-300 text-teal-900', dark: 'bg-teal-900 border-teal-700 text-teal-100' },
+    practice: { light: 'bg-sky-100 border-sky-300 text-sky-900', dark: 'bg-sky-900 border-sky-700 text-sky-100' },
+    break: { light: 'bg-slate-100 border-slate-300 text-slate-900', dark: 'bg-slate-700 border-slate-600 text-slate-100' },
+    primary: { light: 'bg-cyan-500 hover:bg-cyan-600', dark: 'bg-cyan-600 hover:bg-cyan-700' }
+  },
+  sunset: {
+    name: 'Sunset',
+    content: { light: 'bg-orange-100 border-orange-300 text-orange-900', dark: 'bg-orange-900 border-orange-700 text-orange-100' },
+    engagement: { light: 'bg-pink-100 border-pink-300 text-pink-900', dark: 'bg-pink-900 border-pink-700 text-pink-100' },
+    practice: { light: 'bg-rose-100 border-rose-300 text-rose-900', dark: 'bg-rose-900 border-rose-700 text-rose-100' },
+    break: { light: 'bg-amber-100 border-amber-300 text-amber-900', dark: 'bg-amber-800 border-amber-700 text-amber-100' },
+    primary: { light: 'bg-orange-500 hover:bg-orange-600', dark: 'bg-orange-600 hover:bg-orange-700' }
+  },
+  forest: {
+    name: 'Forest',
+    content: { light: 'bg-emerald-100 border-emerald-300 text-emerald-900', dark: 'bg-emerald-900 border-emerald-700 text-emerald-100' },
+    engagement: { light: 'bg-lime-100 border-lime-300 text-lime-900', dark: 'bg-lime-900 border-lime-700 text-lime-100' },
+    practice: { light: 'bg-green-100 border-green-300 text-green-900', dark: 'bg-green-900 border-green-700 text-green-100' },
+    break: { light: 'bg-teal-100 border-teal-300 text-teal-900', dark: 'bg-teal-800 border-teal-700 text-teal-100' },
+    primary: { light: 'bg-emerald-500 hover:bg-emerald-600', dark: 'bg-emerald-600 hover:bg-emerald-700' }
+  },
+  lavender: {
+    name: 'Lavender',
+    content: { light: 'bg-violet-100 border-violet-300 text-violet-900', dark: 'bg-violet-900 border-violet-700 text-violet-100' },
+    engagement: { light: 'bg-fuchsia-100 border-fuchsia-300 text-fuchsia-900', dark: 'bg-fuchsia-900 border-fuchsia-700 text-fuchsia-100' },
+    practice: { light: 'bg-purple-100 border-purple-300 text-purple-900', dark: 'bg-purple-900 border-purple-700 text-purple-100' },
+    break: { light: 'bg-indigo-100 border-indigo-300 text-indigo-900', dark: 'bg-indigo-800 border-indigo-700 text-indigo-100' },
+    primary: { light: 'bg-violet-500 hover:bg-violet-600', dark: 'bg-violet-600 hover:bg-violet-700' }
+  }
+};
 
 export default function SessionPlanner() {
   const [savedSessions, setSavedSessions] = useState([]);
   const [showSessionLibrary, setShowSessionLibrary] = useState(false);
+  const [showThemeCustomizer, setShowThemeCustomizer] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [colorScheme, setColorScheme] = useState('blue');
   const [activityLibrary, setActivityLibrary] = useState([
     { id: 'intro', name: 'Introduction & Icebreaker', duration: 10, type: 'engagement' },
     { id: 'lecture', name: 'Lecture/Presentation', duration: 20, type: 'content' },
@@ -46,7 +93,24 @@ export default function SessionPlanner() {
         return [...defaults, ...parsed];
       });
     }
+
+    // Load theme preferences
+    const savedDarkMode = localStorage.getItem('darkMode');
+    if (savedDarkMode !== null) {
+      setDarkMode(savedDarkMode === 'true');
+    }
+
+    const savedColorScheme = localStorage.getItem('colorScheme');
+    if (savedColorScheme) {
+      setColorScheme(savedColorScheme);
+    }
   }, []);
+
+  // Save theme preferences
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode);
+    localStorage.setItem('colorScheme', colorScheme);
+  }, [darkMode, colorScheme]);
 
   // Save custom activities to localStorage
   useEffect(() => {
@@ -54,12 +118,20 @@ export default function SessionPlanner() {
     localStorage.setItem('customActivities', JSON.stringify(customActivities));
   }, [activityLibrary]);
 
-  const typeColors = {
-    content: 'bg-blue-100 border-blue-300 text-blue-800',
-    engagement: 'bg-green-100 border-green-300 text-green-800',
-    practice: 'bg-purple-100 border-purple-300 text-purple-800',
-    break: 'bg-gray-100 border-gray-300 text-gray-800',
+  // Get current theme colors
+  const getTypeColors = () => {
+    const scheme = colorSchemes[colorScheme];
+    const mode = darkMode ? 'dark' : 'light';
+    return {
+      content: scheme.content[mode],
+      engagement: scheme.engagement[mode],
+      practice: scheme.practice[mode],
+      break: scheme.break[mode]
+    };
   };
+
+  const typeColors = getTypeColors();
+  const primaryButton = colorSchemes[colorScheme].primary[darkMode ? 'dark' : 'light'];
 
   const addCustomActivity = () => {
     if (newActivityName.trim()) {
@@ -428,18 +500,140 @@ ${i + 1}. ${item.name}
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className={`min-h-screen p-6 transition-colors duration-200 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto">
+        {/* Theme Customizer Modal */}
+        {showThemeCustomizer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className={`rounded-lg shadow-xl max-w-2xl w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+              <div className={`p-6 border-b sticky top-0 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className="flex items-center justify-between">
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    <Palette className="inline mr-2" size={24} />
+                    Theme Customizer
+                  </h2>
+                  <button
+                    onClick={() => setShowThemeCustomizer(false)}
+                    className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                {/* Dark Mode Toggle */}
+                <div>
+                  <label className={`text-lg font-semibold mb-3 block ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Display Mode
+                  </label>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setDarkMode(false)}
+                      className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                        !darkMode
+                          ? `${primaryButton} text-white border-transparent`
+                          : darkMode
+                          ? 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
+                          : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      <Sun className="mx-auto mb-2" size={24} />
+                      <div className="font-semibold">Light Mode</div>
+                    </button>
+                    <button
+                      onClick={() => setDarkMode(true)}
+                      className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                        darkMode
+                          ? `${primaryButton} text-white border-transparent`
+                          : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                      }`}
+                    >
+                      <Moon className="mx-auto mb-2" size={24} />
+                      <div className="font-semibold">Dark Mode</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Color Scheme Selection */}
+                <div>
+                  <label className={`text-lg font-semibold mb-3 block ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Color Scheme
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {Object.entries(colorSchemes).map(([key, scheme]) => (
+                      <button
+                        key={key}
+                        onClick={() => setColorScheme(key)}
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          colorScheme === key
+                            ? `${scheme.primary[darkMode ? 'dark' : 'light']} text-white border-transparent`
+                            : darkMode
+                            ? 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
+                            : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        <div className="font-semibold mb-2">{scheme.name}</div>
+                        <div className="flex gap-1 justify-center">
+                          <div className={`w-4 h-4 rounded ${scheme.content[darkMode ? 'dark' : 'light'].split(' ')[0]}`}></div>
+                          <div className={`w-4 h-4 rounded ${scheme.engagement[darkMode ? 'dark' : 'light'].split(' ')[0]}`}></div>
+                          <div className={`w-4 h-4 rounded ${scheme.practice[darkMode ? 'dark' : 'light'].split(' ')[0]}`}></div>
+                          <div className={`w-4 h-4 rounded ${scheme.break[darkMode ? 'dark' : 'light'].split(' ')[0]}`}></div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div>
+                  <label className={`text-lg font-semibold mb-3 block ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Preview
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className={`p-3 rounded-lg border-2 text-sm ${typeColors.content}`}>
+                      <strong>Content</strong>
+                      <div className="text-xs mt-1">Lectures & presentations</div>
+                    </div>
+                    <div className={`p-3 rounded-lg border-2 text-sm ${typeColors.engagement}`}>
+                      <strong>Engagement</strong>
+                      <div className="text-xs mt-1">Discussions & Q&A</div>
+                    </div>
+                    <div className={`p-3 rounded-lg border-2 text-sm ${typeColors.practice}`}>
+                      <strong>Practice</strong>
+                      <div className="text-xs mt-1">Hands-on activities</div>
+                    </div>
+                    <div className={`p-3 rounded-lg border-2 text-sm ${typeColors.break}`}>
+                      <strong>Break</strong>
+                      <div className="text-xs mt-1">Rest periods</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <button
+                  onClick={() => setShowThemeCustomizer(false)}
+                  className={`w-full ${primaryButton} text-white px-6 py-3 rounded-lg font-semibold`}
+                >
+                  Apply Theme
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Session Library Modal */}
         {/* Session Library Modal */}
         {showSessionLibrary && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+            <div className={`rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+              <div className={`p-6 border-b sticky top-0 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-800">Session Library</h2>
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Session Library</h2>
                   <button
                     onClick={() => setShowSessionLibrary(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className={darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}
                   >
                     <X size={24} />
                   </button>
@@ -449,23 +643,25 @@ ${i + 1}. ${item.name}
               <div className="p-6">
                 {savedSessions.length === 0 ? (
                   <div className="text-center py-12">
-                    <FolderOpen size={64} className="mx-auto text-gray-300 mb-4" />
-                    <p className="text-gray-500">No saved sessions yet</p>
-                    <p className="text-sm text-gray-400 mt-2">Create and save a session to see it here</p>
+                    <FolderOpen size={64} className={`mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+                    <p className={darkMode ? 'text-gray-400' : 'text-gray-500'}>No saved sessions yet</p>
+                    <p className={`text-sm mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Create and save a session to see it here</p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
                     {savedSessions.map(session => (
-                      <div key={session.id} className="border border-gray-300 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div key={session.id} className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                        darkMode ? 'border-gray-700 bg-gray-750' : 'border-gray-300'
+                      }`}>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="text-lg font-bold text-gray-800">{session.sessionTitle}</h3>
-                            <div className="mt-2 space-y-1 text-sm text-gray-600">
+                            <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>{session.sessionTitle}</h3>
+                            <div className={`mt-2 space-y-1 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                               {session.sessionDate && <p>Date: {session.sessionDate}</p>}
                               {session.startTime && <p>Start: {session.startTime}</p>}
                               {session.participants && <p>Participants: {session.participants}</p>}
                               <p>Activities: {session.agenda.length}</p>
-                              <p className="text-xs text-gray-400">
+                              <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                                 Saved: {new Date(session.savedAt).toLocaleString()}
                               </p>
                             </div>
@@ -473,7 +669,7 @@ ${i + 1}. ${item.name}
                           <div className="flex gap-2 ml-4">
                             <button
                               onClick={() => loadSession(session)}
-                              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
+                              className={`${primaryButton} text-white px-4 py-2 rounded text-sm`}
                             >
                               Load
                             </button>
@@ -494,10 +690,19 @@ ${i + 1}. ${item.name}
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className={`rounded-lg shadow-lg p-6 mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className={`rounded-lg shadow-lg p-6 mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-800">Session Planner</h1>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Session Planner</h1>
             <div className="flex gap-2">
+              <button
+                onClick={() => setShowThemeCustomizer(true)}
+                className={`px-4 py-2 rounded flex items-center gap-2 ${
+                  darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                <Palette size={18} /> Theme
+              </button>
               <button
                 onClick={newSession}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 flex items-center gap-2"
@@ -512,7 +717,7 @@ ${i + 1}. ${item.name}
               </button>
               <button
                 onClick={saveSession}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
+                className={`${primaryButton} text-white px-4 py-2 rounded flex items-center gap-2`}
               >
                 <Save size={18} /> Save Session
               </button>
@@ -525,32 +730,48 @@ ${i + 1}. ${item.name}
               placeholder="Session Title"
               value={sessionTitle}
               onChange={(e) => setSessionTitle(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+              }`}
             />
             <input
               type="date"
               value={sessionDate}
               onChange={(e) => setSessionDate(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+              }`}
             />
             <input
               type="time"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+              }`}
             />
             <input
               type="text"
               placeholder="# of Participants"
               value={participants}
               onChange={(e) => setParticipants(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+              }`}
             />
           </div>
 
           {/* Session Notes */}
           <div className="mb-4">
-            <label className="flex items-center gap-2 font-semibold text-gray-700 mb-2">
+            <label className={`flex items-center gap-2 font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               <FileText size={18} />
               Session Notes
             </label>
@@ -558,20 +779,26 @@ ${i + 1}. ${item.name}
               value={sessionNotes}
               onChange={(e) => setSessionNotes(e.target.value)}
               placeholder="Add general notes about this session..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y min-h-20"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent resize-y min-h-20 ${
+                darkMode
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+              }`}
             />
           </div>
 
           {/* Learning Objectives */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-2 font-semibold text-gray-700">
+              <label className={`flex items-center gap-2 font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
                 <Target size={18} />
                 Learning Objectives
               </label>
               <button
                 onClick={addLearningObjective}
-                className="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
+                className={`text-sm flex items-center gap-1 ${
+                  darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'
+                }`}
               >
                 <Plus size={16} /> Add Objective
               </button>
@@ -584,7 +811,11 @@ ${i + 1}. ${item.name}
                     value={objective}
                     onChange={(e) => updateLearningObjective(index, e.target.value)}
                     placeholder={`Learning objective ${index + 1}...`}
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                      darkMode
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
+                        : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+                    }`}
                   />
                   {learningObjectives.length > 1 && (
                     <button
@@ -602,13 +833,15 @@ ${i + 1}. ${item.name}
           {/* Session Resources */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-2 font-semibold text-gray-700">
+              <label className={`flex items-center gap-2 font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
                 <LinkIcon size={18} />
                 Session Resources
               </label>
               <button
                 onClick={addSessionResource}
-                className="text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
+                className={`text-sm flex items-center gap-1 ${
+                  darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-500 hover:text-blue-700'
+                }`}
               >
                 <Plus size={16} /> Add Resource
               </button>
@@ -621,14 +854,22 @@ ${i + 1}. ${item.name}
                     value={resource.name}
                     onChange={(e) => updateSessionResource(index, 'name', e.target.value)}
                     placeholder="Resource name"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                      darkMode
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
+                        : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+                    }`}
                   />
                   <input
                     type="url"
                     value={resource.url}
                     onChange={(e) => updateSessionResource(index, 'url', e.target.value)}
                     placeholder="https://..."
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                      darkMode
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
+                        : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
+                    }`}
                   />
                   {sessionResources.length > 1 && (
                     <button
@@ -647,17 +888,22 @@ ${i + 1}. ${item.name}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Activity Library */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Activity Library</h2>
+            <div className={`rounded-lg shadow-lg p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+              <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Activity Library</h2>
               
-              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-semibold text-sm text-gray-700 mb-2">Add Custom Activity</h3>
+              <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <div className={`mb-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h3 className={`font-semibold text-sm mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Add Custom Activity</h3>
                 <input
                   type="text"
                   placeholder="Activity name"
                   value={newActivityName}
                   onChange={(e) => setNewActivityName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded mb-2 text-sm"
+                  className={`w-full px-3 py-2 border rounded mb-2 text-sm ${
+                    darkMode
+                      ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
                 />
                 <div className="flex gap-2 mb-2">
                   <input
@@ -665,12 +911,20 @@ ${i + 1}. ${item.name}
                     placeholder="Duration (min)"
                     value={newActivityDuration}
                     onChange={(e) => setNewActivityDuration(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                    className={`flex-1 px-3 py-2 border rounded text-sm ${
+                      darkMode
+                        ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                   />
                   <select
                     value={newActivityType}
                     onChange={(e) => setNewActivityType(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm"
+                    className={`flex-1 px-3 py-2 border rounded text-sm ${
+                      darkMode
+                        ? 'bg-gray-600 border-gray-500 text-white'
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
                   >
                     <option value="content">Content</option>
                     <option value="engagement">Engagement</option>
@@ -680,7 +934,7 @@ ${i + 1}. ${item.name}
                 </div>
                 <button
                   onClick={addCustomActivity}
-                  className="w-full bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 flex items-center justify-center gap-2 text-sm"
+                  className={`w-full ${primaryButton} text-white px-3 py-2 rounded flex items-center justify-center gap-2 text-sm`}
                 >
                   <Plus size={16} /> Add Activity
                 </button>
@@ -713,11 +967,11 @@ ${i + 1}. ${item.name}
 
           {/* Agenda Builder */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className={`rounded-lg shadow-lg p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Session Agenda</h2>
+                <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Session Agenda</h2>
                 <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-600">
+                  <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     <Clock className="inline mr-1" size={16} />
                     Total: <span className="font-bold">{totalDuration} min</span> ({Math.floor(totalDuration/60)}h {totalDuration%60}m)
                   </div>
@@ -746,8 +1000,10 @@ ${i + 1}. ${item.name}
                 onDrop={(e) => handleDrop(e)}
               >
                 {agenda.length === 0 ? (
-                  <div className="flex items-center justify-center h-96 border-2 border-dashed border-gray-300 rounded-lg">
-                    <p className="text-gray-400 text-center">
+                  <div className={`flex items-center justify-center h-96 border-2 border-dashed rounded-lg ${
+                    darkMode ? 'border-gray-600' : 'border-gray-300'
+                  }`}>
+                    <p className={`text-center ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                       Drag activities here or click them to add to agenda
                     </p>
                   </div>
@@ -798,39 +1054,51 @@ ${i + 1}. ${item.name}
                                 type="number"
                                 value={item.duration}
                                 onChange={(e) => updateAgendaDuration(item.agendaId, e.target.value)}
-                                className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                className={`w-16 px-2 py-1 border rounded text-sm ${
+                                  darkMode
+                                    ? 'bg-gray-700 border-gray-600 text-white'
+                                    : 'bg-white border-gray-300 text-gray-900'
+                                }`}
                               />
                               <span className="text-sm">min</span>
                             </div>
-                            <span className="text-xs px-2 py-1 bg-white bg-opacity-50 rounded">
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              darkMode ? 'bg-gray-700 bg-opacity-70' : 'bg-white bg-opacity-50'
+                            }`}>
                               {item.type}
                             </span>
                           </div>
 
                           {expandedItems[item.agendaId] && (
-                            <div className="mt-4 space-y-3 pt-3 border-t border-gray-300">
+                            <div className={`mt-4 space-y-3 pt-3 border-t ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}>
                               {/* Activity Notes */}
                               <div>
-                                <label className="text-xs font-semibold text-gray-700 mb-1 block">
+                                <label className={`text-xs font-semibold mb-1 block ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                   Activity Notes
                                 </label>
                                 <textarea
                                   value={item.notes || ''}
                                   onChange={(e) => updateAgendaNotes(item.agendaId, e.target.value)}
                                   placeholder="Add notes for this activity..."
-                                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm resize-y min-h-16 bg-white"
+                                  className={`w-full px-3 py-2 border rounded text-sm resize-y min-h-16 ${
+                                    darkMode
+                                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                      : 'bg-white border-gray-300 text-gray-900'
+                                  }`}
                                 />
                               </div>
 
                               {/* Activity Resources */}
                               <div>
                                 <div className="flex items-center justify-between mb-2">
-                                  <label className="text-xs font-semibold text-gray-700">
+                                  <label className={`text-xs font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                     Activity Resources
                                   </label>
                                   <button
                                     onClick={() => addResourceToActivity(item.agendaId)}
-                                    className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                    className={`text-xs flex items-center gap-1 ${
+                                      darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
+                                    }`}
                                   >
                                     <Plus size={14} /> Add
                                   </button>
@@ -843,14 +1111,22 @@ ${i + 1}. ${item.name}
                                         value={resource.name}
                                         onChange={(e) => updateActivityResource(item.agendaId, rIndex, 'name', e.target.value)}
                                         placeholder="Resource name"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm bg-white"
+                                        className={`flex-1 px-3 py-2 border rounded text-sm ${
+                                          darkMode
+                                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                        }`}
                                       />
                                       <input
                                         type="url"
                                         value={resource.url}
                                         onChange={(e) => updateActivityResource(item.agendaId, rIndex, 'url', e.target.value)}
                                         placeholder="https://..."
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm bg-white"
+                                        className={`flex-1 px-3 py-2 border rounded text-sm ${
+                                          darkMode
+                                            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+                                            : 'bg-white border-gray-300 text-gray-900'
+                                        }`}
                                       />
                                       {item.resources.length > 1 && (
                                         <button
