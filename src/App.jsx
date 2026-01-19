@@ -1151,6 +1151,8 @@ ${i + 1}. ${item.name}
             </div>
           </div>
         </div>
+        </div>
+        </div>
       </div>
     </div>
   );
